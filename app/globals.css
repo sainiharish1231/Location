@@ -947,6 +947,18 @@ img {
   animation: buttonPulse 2.4s ease-in-out infinite;
 }
 
+.locationHelpModal {
+  border-color: rgba(247, 201, 72, 0.72);
+  background:
+    linear-gradient(145deg, rgba(247, 201, 72, 0.14), transparent 42%),
+    linear-gradient(145deg, transparent 48%, rgba(20, 184, 166, 0.1)),
+    var(--surface);
+}
+
+.locationHelpModal::before {
+  background: linear-gradient(90deg, var(--gold), var(--green), var(--coral));
+}
+
 .modalClose {
   position: absolute;
   top: 12px;
@@ -1002,6 +1014,22 @@ img {
   display: grid;
   grid-template-columns: 1fr 0.7fr;
   gap: 10px;
+}
+
+.locationHelpList {
+  display: grid;
+  gap: 8px;
+  border: 1px solid rgba(247, 201, 72, 0.45);
+  border-radius: 8px;
+  background: rgba(255, 247, 237, 0.82);
+  padding: 12px;
+}
+
+.locationHelpList span {
+  color: var(--ink);
+  font-size: 0.94rem;
+  font-weight: 800;
+  line-height: 1.45;
 }
 
 .saveToast {

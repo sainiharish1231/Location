@@ -1,9 +1,10 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import type { VisitRecord } from "@/lib/visits";
 
 type CaptureState = "idle" | "locating" | "saving" | "saved" | "error";
+type PermissionModalMode = "welcome" | "enableLocation";
 
 function getGeoErrorMessage(error: GeolocationPositionError) {
   if (error.code === error.PERMISSION_DENIED) {
@@ -35,18 +36,67 @@ function formatVisitTime(value: string) {
 export function LocationCapture() {
   const [visitorName, setVisitorName] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(true);
+  const [modalMode, setModalMode] = useState<PermissionModalMode>("welcome");
   const [status, setStatus] = useState<CaptureState>("idle");
   const [error, setError] = useState("");
   const [savedVisit, setSavedVisit] = useState<VisitRecord | null>(null);
+  const isLocationHelpModal = modalMode === "enableLocation";
 
   const buttonLabel = useMemo(() => {
     if (status === "locating") return "Getting ...";
     if (status === "saving") return "Saving...";
     if (status === "saved") return "Saved";
+    if (isLocationHelpModal) return "retry";
     return "Allow & enter portfolio";
-  }, [status]);
+  }, [isLocationHelpModal, status]);
+
+  useEffect(() => {
+    if (!navigator.permissions?.query) return;
+
+    let isMounted = true;
+    let permissionStatus: PermissionStatus | null = null;
+
+    function syncPermissionState() {
+      if (!isMounted || !permissionStatus) return;
+
+      if (permissionStatus.state === "denied") {
+        setStatus("error");
+        setError(" permission blocked hai. Browser settings me  allow karein.");
+        setModalMode("enableLocation");
+        setIsModalOpen(true);
+        return;
+      }
+
+      if (permissionStatus.state === "granted") {
+        setStatus((currentStatus) =>
+          currentStatus === "error" ? "idle" : currentStatus,
+        );
+        setError("");
+        setModalMode("welcome");
+      }
+    }
+
+    navigator.permissions
+      .query({ name: "geolocation" })
+      .then((nextPermissionStatus) => {
+        if (!isMounted) return;
+
+        permissionStatus = nextPermissionStatus;
+        syncPermissionState();
+        permissionStatus.addEventListener("change", syncPermissionState);
+      })
+      .catch(() => {
+        // Some browsers do not support querying geolocation permission.
+      });
+
+    return () => {
+      isMounted = false;
+      permissionStatus?.removeEventListener("change", syncPermissionState);
+    };
+  }, []);
 
   function openPermissionModal() {
+    setModalMode(status === "error" ? "enableLocation" : "welcome");
     setIsModalOpen(true);
   }
 
@@ -107,11 +157,14 @@ export function LocationCapture() {
     if (!navigator.geolocation) {
       setStatus("error");
       setError("Is browser me  API supported nahi hai.");
+      setModalMode("enableLocation");
+      setIsModalOpen(true);
       return;
     }
 
     setStatus("locating");
     setError("");
+    setModalMode(isLocationHelpModal ? "enableLocation" : "welcome");
     setSavedVisit(null);
 
     navigator.geolocation.getCurrentPosition(
@@ -124,6 +177,8 @@ export function LocationCapture() {
       (geoError) => {
         setStatus("error");
         setError(getGeoErrorMessage(geoError));
+        setModalMode("enableLocation");
+        setIsModalOpen(true);
       },
       {
         enableHighAccuracy: true,
@@ -194,18 +249,38 @@ export function LocationCapture() {
           <form
             aria-labelledby="locationPermissionTitle"
             aria-modal="true"
-            className="permissionModal"
+            className={`permissionModal ${
+              isLocationHelpModal ? "locationHelpModal" : ""
+            }`}
             onSubmit={requestLocation}
             role="dialog"
           >
             <div className="modalCopy">
-              <p className="eyebrow">Portfolio check-in</p>
-              <h2 id="locationPermissionTitle">Welcome to Harish Portfolio</h2>
+              <p className="eyebrow">
+                {isLocationHelpModal ? " required" : "Portfolio check-in"}
+              </p>
+              <h2 id="locationPermissionTitle">
+                {isLocationHelpModal
+                  ? "Location on karein"
+                  : "Welcome to Harish Portfolio"}
+              </h2>
               <p>
-                Tap allow to enter the portfolio and show your live data on this
-                page.
+                {isLocationHelpModal
+                  ? " Portfolio enter karne ke liye browser/site settings me Location allow karein, phir retry karein."
+                  : "Tap allow to enter the portfolio and show your live data on this page."}
               </p>
             </div>
+
+            {isLocationHelpModal ? (
+              <div
+                className="locationHelpList"
+                aria-label="Location enable steps"
+              >
+                <span>
+                  1. Browser ke address bar me site settings open karein.
+                </span>
+              </div>
+            ) : null}
 
             {status === "error" ? (
               <p className="statusText error">{error}</p>
