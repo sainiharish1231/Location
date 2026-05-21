@@ -447,7 +447,7 @@ img {
 
 .checkInCard {
   position: fixed;
-  top: 92px;
+  top: -0992px;
   right: 18px;
   z-index: 45;
   width: min(390px, calc(100% - 36px));

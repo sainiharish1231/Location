@@ -135,7 +135,7 @@ export function LocationCapture() {
 
   return (
     <>
-      <div className=" hidden checkInCard">
+      <div className="flex  hidden checkInCard">
         <div>
           <span className="miniLabel">Portfolio visitor</span>
           <strong>

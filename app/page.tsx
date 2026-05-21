@@ -2,7 +2,7 @@ import Link from "next/link";
 import { LocationCapture } from "./components/location-capture";
 
 const stats = [
-  { value: "BSc", label: "Software Development" },
+  { value: "Bca", label: "Software Development" },
   { value: "Next.js", label: "Portfolio stack" },
   { value: "Nawalgarh", label: "Birol, Rajasthan" },
 ];
@@ -67,7 +67,7 @@ const education = [
     year: "Now",
     title: "Seth G.B. Podar College",
     detail:
-      "Studying BSc Software Development with a focus on web, frontend, and practical projects.",
+      "Studying Bca Software Development with a focus on web, frontend, and practical projects.",
   },
   {
     year: "Stack",
@@ -117,9 +117,9 @@ export default function Home() {
           <a href="#skills">Skills</a>
           <a href="#gallery">Gallery</a>
           <a href="#contact">Contact</a>
-          <Link className="adminLink" href="/history">
+          {/* <Link className="adminLink" href="/history">
             Admin
-          </Link>
+          </Link> */}
         </div>
         <details className="mobileMenu">
           <summary aria-label="Open mobile menu">
@@ -143,7 +143,7 @@ export default function Home() {
 
       <section className="portfolioHero">
         <div className="heroCopy">
-          <p className="eyebrow">BSc Software Development</p>
+          <p className="eyebrow">Bca Software Development</p>
           <h1>Saini Harish</h1>
           <p>
             Student at Seth G.B. Podar College. I build modern Next.js websites
@@ -207,7 +207,7 @@ export default function Home() {
           <article className="aboutPanel revealBlock">
             <span>Profile</span>
             <p>
-              I am Saini Harish, a BSc Software Development student at Seth G.B.
+              I am Saini Harish, a Bca Software Development student at Seth G.B.
               Podar College. I like creating clean web interfaces, animated
               sections, and practical frontend projects.
             </p>
