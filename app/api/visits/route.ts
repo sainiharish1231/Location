@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { addVisit, getVisits } from "@/lib/visits";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 const fallbackAdminKey = "change-me-local";
 
@@ -38,13 +39,33 @@ function isValidCoordinate(latitude: number | null, longitude: number | null) {
   );
 }
 
+function persistenceErrorResponse(error: unknown) {
+  console.error("Visit persistence error:", error);
+
+  const isMissingMongoUri =
+    error instanceof Error && error.message.includes("MONGODB_URI");
+
+  return NextResponse.json(
+    {
+      error: isMissingMongoUri
+        ? "MongoDB setup missing hai. MONGODB_URI set karein."
+        : "MongoDB me save/load nahi ho paaya.",
+    },
+    { status: 500 },
+  );
+}
+
 export async function GET(request: NextRequest) {
   if (!isAdminRequest(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const visits = await getVisits();
-  return NextResponse.json({ visits });
+  try {
+    const visits = await getVisits();
+    return NextResponse.json({ visits });
+  } catch (error) {
+    return persistenceErrorResponse(error);
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -71,20 +92,24 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const visit = await addVisit({
-    accuracy: cleanNumber(body.accuracy) ?? 0,
-    altitude: cleanNumber(body.altitude),
-    capturedAt: cleanString(body.capturedAt, 40),
-    heading: cleanNumber(body.heading),
-    language: cleanString(body.language, 40),
-    latitude,
-    longitude,
-    page: cleanString(body.page, 240),
-    speed: cleanNumber(body.speed),
-    timezone: cleanString(body.timezone, 80),
-    userAgent: cleanString(request.headers.get("user-agent"), 240),
-    visitorName: cleanString(body.visitorName, 80),
-  });
+  try {
+    const visit = await addVisit({
+      accuracy: cleanNumber(body.accuracy) ?? 0,
+      altitude: cleanNumber(body.altitude),
+      capturedAt: cleanString(body.capturedAt, 40),
+      heading: cleanNumber(body.heading),
+      language: cleanString(body.language, 40),
+      latitude,
+      longitude,
+      page: cleanString(body.page, 240),
+      speed: cleanNumber(body.speed),
+      timezone: cleanString(body.timezone, 80),
+      userAgent: cleanString(request.headers.get("user-agent"), 240),
+      visitorName: cleanString(body.visitorName, 80),
+    });
 
-  return NextResponse.json({ visit }, { status: 201 });
+    return NextResponse.json({ visit }, { status: 201 });
+  } catch (error) {
+    return persistenceErrorResponse(error);
+  }
 }

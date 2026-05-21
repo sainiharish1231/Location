@@ -1,6 +1,5 @@
 import { randomUUID } from "crypto";
-import { promises as fs } from "fs";
-import path from "path";
+import { MongoClient, type Collection } from "mongodb";
 
 export type VisitRecord = {
   id: string;
@@ -21,43 +20,95 @@ export type VisitRecord = {
 
 export type NewVisit = Omit<VisitRecord, "id" | "createdAt">;
 
-const dataDirectory = path.join(process.cwd(), "data");
-const dataFile = path.join(dataDirectory, "visits.json");
 const maxSavedVisits = 1000;
+const defaultDatabaseName = "visitor-location-web";
+const defaultCollectionName = "visits";
 
-async function readStore(): Promise<VisitRecord[]> {
-  try {
-    const content = await fs.readFile(dataFile, "utf8");
-    const parsed = JSON.parse(content);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch (error) {
-    const code = (error as NodeJS.ErrnoException).code;
-    if (code === "ENOENT") return [];
-    throw error;
+type VisitDocument = VisitRecord & {
+  _id?: unknown;
+};
+
+const globalForMongo = globalThis as typeof globalThis & {
+  mongoClientPromise?: Promise<MongoClient>;
+};
+
+let visitsIndexesPromise: Promise<unknown> | null = null;
+
+function getMongoUri() {
+  const uri = process.env.MONGODB_URI;
+  if (!uri) {
+    throw new Error("MONGODB_URI is required to save visitor locations.");
+  }
+
+  return uri;
+}
+
+function getMongoClient() {
+  globalForMongo.mongoClientPromise ??= new MongoClient(
+    getMongoUri(),
+  ).connect();
+
+  return globalForMongo.mongoClientPromise;
+}
+
+async function getVisitsCollection(): Promise<Collection<VisitDocument>> {
+  const client = await getMongoClient();
+  const collection = client
+    .db(process.env.MONGODB_DB || defaultDatabaseName)
+    .collection<VisitDocument>(
+      process.env.MONGODB_VISITS_COLLECTION || defaultCollectionName,
+    );
+
+  visitsIndexesPromise ??= Promise.all([
+    collection.createIndex({ createdAt: -1 }),
+    collection.createIndex({ id: 1 }, { unique: true }),
+  ]);
+  await visitsIndexesPromise;
+
+  return collection;
+}
+
+function toVisitRecord({ _id, ...visit }: VisitDocument): VisitRecord {
+  return visit;
+}
+
+async function trimOldVisits(collection: Collection<VisitDocument>) {
+  const oldVisits = await collection
+    .find({}, { projection: { id: 1 } })
+    .sort({ createdAt: -1 })
+    .skip(maxSavedVisits)
+    .toArray();
+
+  const oldIds = oldVisits
+    .map((visit) => visit.id)
+    .filter((id): id is string => typeof id === "string");
+
+  if (oldIds.length > 0) {
+    await collection.deleteMany({ id: { $in: oldIds } });
   }
 }
 
-async function writeStore(visits: VisitRecord[]) {
-  await fs.mkdir(dataDirectory, { recursive: true });
-  await fs.writeFile(dataFile, JSON.stringify(visits, null, 2), "utf8");
-}
-
 export async function getVisits() {
-  const visits = await readStore();
-  return visits.sort(
-    (left, right) =>
-      new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime(),
-  );
+  const collection = await getVisitsCollection();
+  const visits = await collection
+    .find({}, { projection: { _id: 0 } })
+    .sort({ createdAt: -1 })
+    .limit(maxSavedVisits)
+    .toArray();
+
+  return visits.map(toVisitRecord);
 }
 
 export async function addVisit(input: NewVisit) {
-  const currentVisits = await getVisits();
+  const collection = await getVisitsCollection();
   const visit: VisitRecord = {
     ...input,
     id: randomUUID(),
     createdAt: new Date().toISOString(),
   };
 
-  await writeStore([visit, ...currentVisits].slice(0, maxSavedVisits));
+  await collection.insertOne(visit);
+  await trimOldVisits(collection);
+
   return visit;
 }
