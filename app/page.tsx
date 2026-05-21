@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { LocationCapture } from "./components/location-capture";
+import { RiMenu3Fill } from "react-icons/ri";
 
-const stats = [
-  { value: "Bca", label: "Software Development" },
-  { value: "Next.js", label: "Portfolio stack" },
-  { value: "Nawalgarh", label: "Birol, Rajasthan" },
-];
+// const stats = [
+//   // { value: "Full Stack", label: "Software Development" },
+//   { value: "Next.js", label: "Portfolio stack" },
+//   { value: "Nawalgarh", label: "Birol, Rajasthan" },
+// ];
 
 const featureCards = [
   {
@@ -123,11 +124,7 @@ export default function Home() {
         </div>
         <details className="mobileMenu">
           <summary aria-label="Open mobile menu">
-            <span className="menuDots" aria-hidden="true">
-              <span />
-              <span />
-              <span />
-            </span>
+            <RiMenu3Fill />
           </summary>
           <div className="mobileMenuPanel">
             <a href="#about">About</a>
@@ -135,7 +132,7 @@ export default function Home() {
             <a href="#skills">Skills</a>
             <a href="#gallery">Gallery</a>
             <a href="#contact">Contact</a>
-            <Link href="/history">Admin</Link>
+            {/* <Link href="/history">Admin</Link> */}
           </div>
         </details>
       </nav>
@@ -159,12 +156,12 @@ export default function Home() {
             </a>
           </div>
           <div className="heroStats" aria-label="Portfolio highlights">
-            {stats.map((stat) => (
+            {/* {stats.map((stat) => (
               <span key={stat.label}>
                 <strong>{stat.value}</strong>
                 {stat.label}
               </span>
-            ))}
+            ))} */}
           </div>
         </div>
 

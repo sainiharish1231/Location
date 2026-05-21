@@ -23,11 +23,13 @@
 
 html {
   min-height: 100%;
+  overflow-x: hidden;
   scroll-behavior: smooth;
 }
 
 body {
   position: relative;
+  overflow-x: hidden;
   min-height: 100%;
   margin: 0;
   background:
@@ -447,13 +449,13 @@ img {
 
 .checkInCard {
   position: fixed;
-  top: -0992px;
+  top: -992px;
   right: 18px;
   z-index: 45;
   width: min(390px, calc(100% - 36px));
   max-height: calc(100vh - 116px);
   overflow-y: auto;
-  display: grid;
+  display: none;
   grid-template-columns: 1fr auto;
   gap: 12px;
   align-items: center;
@@ -1323,6 +1325,7 @@ td {
     top: 10px;
     align-items: center;
     flex-direction: row;
+    gap: 10px;
     min-height: 54px;
     padding: 10px 12px;
   }
@@ -1333,14 +1336,6 @@ td {
 
   .mobileMenu {
     display: block;
-  }
-
-  .checkInCard {
-    top: 76px;
-    left: 12px;
-    right: 12px;
-    width: auto;
-    grid-template-columns: 1fr;
   }
 
   .heroCopy h1 {
@@ -1355,18 +1350,24 @@ td {
 
   .heroStats {
     grid-template-columns: 1fr;
+    gap: 8px;
+    margin-top: 24px;
+  }
+
+  .heroStats span {
+    min-height: auto;
+    padding: 12px 14px;
   }
 
   .heroVisual {
     min-height: auto;
-    overflow: visible;
-    box-shadow: none;
+    overflow: hidden;
+    box-shadow: var(--shadow);
   }
 
   .heroVisual img {
     min-height: 430px;
-    border-radius: 8px;
-    box-shadow: var(--shadow);
+    box-shadow: none;
   }
 
   .heroVisual::after {
@@ -1379,8 +1380,48 @@ td {
     top: 12px;
   }
 
+  .visualCard strong {
+    font-size: 0.96rem;
+    line-height: 1.35;
+  }
+
   .floatingBadge {
     display: none;
+  }
+
+  .portfolioHero {
+    gap: 24px;
+    padding: 28px 0 42px;
+  }
+
+  .heroCopy p:not(.eyebrow),
+  .contactBand p {
+    margin-top: 16px;
+    font-size: 1rem;
+  }
+
+  .heroActions {
+    align-items: stretch;
+    gap: 10px;
+    margin-top: 22px;
+  }
+
+  .heroActions .linkButton,
+  .contactBand .linkButton {
+    width: 100%;
+  }
+
+  .aboutPanel,
+  .featureCard,
+  .projectCard,
+  .achievementItem {
+    min-height: auto;
+  }
+
+  .skillCloud span {
+    flex: 1 1 calc(50% - 10px);
+    justify-content: center;
+    text-align: center;
   }
 
   .visitorDataHeader {
@@ -1428,6 +1469,14 @@ td {
   .contactBand {
     margin-top: 42px;
     padding: 20px;
+  }
+
+  .permissionModal {
+    padding: 24px;
+  }
+
+  .modalCopy h2 {
+    font-size: 2.35rem;
   }
 
   .tableWrap {
@@ -1489,26 +1538,27 @@ td {
   }
 
   .heroCopy h1 {
-    font-size: 2.55rem;
+    font-size: 2.4rem;
   }
 
   .sectionHeader h1,
   .sectionHeader h2,
   .contactBand h2 {
-    font-size: 2.05rem;
+    font-size: 1.9rem;
+    line-height: 1.08;
   }
 
   .heroVisual img {
-    min-height: 350px;
+    min-height: 330px;
     object-position: center top;
   }
 
   .permissionModal {
-    padding: 20px;
+    padding: 18px;
   }
 
   .modalCopy h2 {
-    font-size: 2rem;
+    font-size: 1.85rem;
   }
 
   .projectCard,
@@ -1525,6 +1575,12 @@ td {
 
   .photoCard img {
     min-height: 360px;
+  }
+
+  .primaryButton,
+  .secondaryButton {
+    width: 100%;
+    padding: 0 14px;
   }
 }
 
